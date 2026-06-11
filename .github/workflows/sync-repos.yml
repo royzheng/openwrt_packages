@@ -1,0 +1,47 @@
+name: Sync OpenWrt packages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-openwrt-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ensure branch ref
+        if: ${{ github.ref_type != 'branch' }}
+        run: |
+          echo "This workflow can only push changes back to a branch."
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync upstream repositories
+        run: bash ./sync-repos.sh
+
+      - name: Commit and push changes
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "chore: sync upstream OpenWrt packages"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
