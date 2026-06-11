@@ -19,8 +19,6 @@ REPO_SPECS=(
   "openclash|https://github.com/vernesong/OpenClash.git|openclash|selected|luci-app-openclash|"
   "passwall|https://github.com/xiaorouji/openwrt-passwall-packages.git|passwall|all_subdirs||.github"
   "cupsd|https://github.com/gdck/luci-app-cupsd.git|cupsd|all_subdirs||"
-  "nft-qos|https://github.com/rosywrt/nft-qos.git|nft-qos|selected|luci-app-nft-qos|"
-  "coolsnowwolf_packages|https://github.com/coolsnowwolf/packages.git|coolsnowwolf_packages|selected|net/nft-qos|"
 )
 
 log() {
