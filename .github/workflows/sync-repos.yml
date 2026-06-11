@@ -37,11 +37,12 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          if git diff --quiet && git diff --cached --quiet; then
+          git add -A
+
+          if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
           fi
 
-          git add -A
           git commit -m "chore: sync upstream OpenWrt packages"
           git push origin "HEAD:${GITHUB_REF_NAME}"
