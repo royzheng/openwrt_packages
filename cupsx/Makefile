@@ -9,7 +9,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cupsx
-PKG_VERSION:=1.0.0
+PKG_VERSION:=2.3.3
 PKG_RELEASE:=1
 
 PKG_SOURCE:=cups-$(PKG_VERSION)-source.tar.gz
