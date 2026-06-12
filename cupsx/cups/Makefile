@@ -8,8 +8,8 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=cups
-PKG_VERSION:=2.3.3
+PKG_NAME:=cupsx
+PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-source.tar.gz
@@ -21,83 +21,83 @@ TARGET_LDFLAGS+=-Wl,-rpath-link=$(STAGING_DIR)/usr/lib
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/cups/Default
+define Package/cupsx/Default
   URL:=http://www.cups.org/
   SUBMENU:=Printing
 endef
 
-define Package/cups
-$(call Package/cups/Default)
+define Package/cupsx
+$(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:=+libcups +libcupsmime  +libcupscgi +libcupsppdc +libusb-1.0
+  DEPENDS:=+libcups +libcupsmime  +libcupscgi +libcupsppdc +libusb-1.0 +avahi-daemon
   TITLE:=Common UNIX Printing System (daemon)
 endef
 
-define Package/cups/description
+define Package/cupsx/description
 	Common UNIX Printing System (daemon)
 endef
 
-define Package/cups/conffiles
+define Package/cupsx/conffiles
 /etc/cups/classes.conf
 /etc/cups/cupsd.conf
 /etc/cups/printers.conf
 endef
 
-define Package/cups-bsd
-$(call Package/cups/Default)
+define Package/cupsx-bsd
+$(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:=+libcups
   TITLE:=Common UNIX Printing System - BSD commands (old)
 endef
 
-define Package/cups-bsd/description
+define Package/cupsx-bsd/description
 	Common UNIX Printing System - BSD commands (old)
 endef
 
-define Package/cups-client
-$(call Package/cups/Default)
+define Package/cupsx-client
+$(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:=+libcups +libcupsimage +libcupsmime
   TITLE:=Common UNIX Printing System - Client commands
 endef
 
-define Package/cups-client/conffiles
+define Package/cupsx-client/conffiles
 /etc/cups/client.conf
 endef
 
-define Package/cups-client/description
+define Package/cupsx-client/description
 	Common UNIX Printing System - Client commands
 endef
 
-define Package/cups-filters
-$(call Package/cups/Default)
+define Package/cupsx-filters
+$(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:=+libcupsimage
   TITLE:=Common UNIX Printing System - Filter
 endef
 
-define Package/cups-filters/description
+define Package/cupsx-filters/description
 	Common UNIX Printing System - Filter
 endef
 
-define Package/cups-ppdc
-$(call Package/cups/Default)
+define Package/cupsx-ppdc
+$(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
   DEPENDS:=+libcupsppdc
   TITLE:=Common UNIX Printing System - PPDC utils
 endef
 
-define Package/cups-ppdc/description
+define Package/cupsx-ppdc/description
 	Common UNIX Printing System - PPDC utils
 endef
 
 define Package/libcups
-$(call Package/cups/Default)
+$(call Package/cupsx/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+zlib +libpthread +libpng +libjpeg
@@ -109,7 +109,7 @@ define Package/libcups/description
 endef
   
   define Package/libcupscgi
-$(call Package/cups/Default)
+$(call Package/cupsx/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+libcups
@@ -121,7 +121,7 @@ define Package/libcupscgi/description
 endef
 
 define Package/libcupsimage
-$(call Package/cups/Default)
+$(call Package/cupsx/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+libcups
@@ -133,7 +133,7 @@ define Package/libcupsimage/description
 endef
 
 define Package/libcupsmime
-$(call Package/cups/Default)
+$(call Package/cupsx/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+libcups
@@ -145,7 +145,7 @@ define Package/libcupsmime/description
 endef
 
 define Package/libcupsppdc
-$(call Package/cups/Default)
+$(call Package/cupsx/Default)
   SECTION:=libs
   CATEGORY:=Libraries
   DEPENDS:=+libcups +libstdcpp
@@ -196,7 +196,7 @@ define Build/Compile
 		all install
 endef
 
-define Package/cups/install
+define Package/cupsx/install
 	rm -rf $(1)/etc/cups
 	$(INSTALL_DIR) $(1)/etc/cups
 	$(CP) $(PKG_INSTALL_DIR)/etc/cups/* $(1)/etc/cups/
@@ -234,6 +234,8 @@ define Package/cups/install
 	# install initscript with priority 60
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/cupsd.init $(1)/etc/init.d/cupsd
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) ./files/usr/sbin/cups-airprint-update $(1)/usr/sbin/
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/sbin/{cupsctl,cupsd} \
 		$(1)/usr/sbin/
@@ -241,14 +243,14 @@ define Package/cups/install
 	chmod 700 $(1)/usr/lib/cups/backend/usb
 endef
 
-define Package/cups-bsd/install
+define Package/cupsx-bsd/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/{lprm,lpq,lpr} $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/lpc $(1)/usr/sbin/
 endef
 
-define Package/cups-client/install
+define Package/cupsx-client/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/bin/{lp,cancel,cupstestppd} \
@@ -262,14 +264,14 @@ define Package/cups-client/install
 	(cd $(1)/usr/sbin; ln -sf cupsaccept accept; ln -sf cupsaccept cupsenable; ln -sf cupsaccept cupsdisable; ln -sf cupsaccept reject; ln -sf cupsaccept cupsreject;)
 endef
 
-define Package/cups-filters/install
+define Package/cupsx-filters/install
 	$(INSTALL_DIR) $(1)/usr/lib/cups/filter
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/cups/filter/{rastertoepson,rastertohp,rastertolabel,rastertopwg} \
 		$(1)/usr/lib/cups/filter
 	(cd $(1)/usr/lib/cups/filter; ln -sf rastertolabel rastertodymo;)
 endef
 
-define Package/cups-ppdc/install
+define Package/cupsx-ppdc/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/bin/{ppdc,ppdhtml,ppdi,ppdmerge,ppdpo} \
@@ -310,7 +312,7 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/cups/libcups*.so* $(1)/usr/lib/
 endef
 
-$(eval $(call BuildPackage,cups))
+$(eval $(call BuildPackage,cupsx))
 $(eval $(call BuildPackage,libcups))
 $(eval $(call BuildPackage,libcupscgi))
 $(eval $(call BuildPackage,libcupsimage))

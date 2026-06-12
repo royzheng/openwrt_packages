@@ -18,7 +18,6 @@ REPOS_DIR="${ROOT_DIR}/repos"
 REPO_SPECS=(
   "openclash|https://github.com/vernesong/OpenClash.git|openclash|selected|luci-app-openclash|"
   "passwall|https://github.com/xiaorouji/openwrt-passwall-packages.git|passwall|all_subdirs||.github"
-  "cupsd|https://github.com/gdck/luci-app-cupsd.git|cupsd|all_subdirs||"
 )
 
 log() {

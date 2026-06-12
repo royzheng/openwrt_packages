@@ -1,0 +1,179 @@
+#!/bin/sh
+
+PRINTERS_CONF="${PRINTERS_CONF:-/etc/cups/printers.conf}"
+SERVICES_DIR="${SERVICES_DIR:-/etc/avahi/services}"
+PREFIX="${PREFIX:-AirPrint-CUPS-}"
+PDL="${PDL:-application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf}"
+
+remove_services() {
+	rm -f "$SERVICES_DIR"/"$PREFIX"*.service 2>/dev/null || true
+}
+
+xml_escape() {
+	printf '%s' "$1" | sed \
+		-e 's/&/\&amp;/g' \
+		-e 's/</\&lt;/g' \
+		-e 's/>/\&gt;/g' \
+		-e 's/"/\&quot;/g' \
+		-e "s/'/\&apos;/g"
+}
+
+safe_filename() {
+	printf '%s' "$1" | sed -e 's/[^A-Za-z0-9_.-]/_/g'
+}
+
+is_shared() {
+	case "$1" in
+		[Yy][Ee][Ss]|[Oo][Nn]|1|[Tt][Rr][Uu][Ee])
+			return 0
+			;;
+	esac
+
+	return 1
+}
+
+state_number() {
+	case "$1" in
+		[Pp]rocessing)
+			printf '4'
+			;;
+		[Ss]topped)
+			printf '5'
+			;;
+		*)
+			printf '3'
+			;;
+	esac
+}
+
+printer_type_hex() {
+	case "$1" in
+		''|*[!0-9]*)
+			printf '0x0'
+			;;
+		*)
+			printf '0x%x' "$1" 2>/dev/null || printf '0x0'
+			;;
+	esac
+}
+
+write_service() {
+	local printer="$1"
+	local info="$2"
+	local shared="$3"
+	local state="$4"
+	local type="$5"
+	local service_file name note rp state_no type_hex color_txt filename
+
+	[ -n "$printer" ] || return 0
+	is_shared "$shared" || return 0
+
+	[ -n "$info" ] || info="$printer"
+	filename="$(safe_filename "$printer")"
+	[ -n "$filename" ] || filename="printer"
+
+	service_file="$SERVICES_DIR/$PREFIX$filename.service"
+	name="$(xml_escape "AirPrint $printer @ %h")"
+	note="$(xml_escape "$info")"
+	rp="$(xml_escape "printers/$printer")"
+	state_no="$(state_number "$state")"
+	type_hex="$(printer_type_hex "$type")"
+	color_txt=""
+
+	case "$type" in
+		''|*[!0-9]*)
+			;;
+		*)
+			if [ "$((type & 8))" -ne 0 ]; then
+				color_txt="    <txt-record>Color=T</txt-record>"
+			fi
+			;;
+	esac
+
+	cat > "$service_file" <<-EOF
+	<?xml version="1.0"?>
+	<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+	<service-group>
+	  <name replace-wildcards="yes">$name</name>
+	  <service>
+	    <type>_ipp._tcp</type>
+	    <subtype>_universal._sub._ipp._tcp</subtype>
+	    <port>631</port>
+	    <txt-record>txtvers=1</txt-record>
+	    <txt-record>qtotal=1</txt-record>
+	    <txt-record>Transparent=T</txt-record>
+	    <txt-record>URF=none</txt-record>
+	    <txt-record>rp=$rp</txt-record>
+	    <txt-record>note=$note</txt-record>
+	    <txt-record>product=(CUPS)</txt-record>
+	    <txt-record>printer-state=$state_no</txt-record>
+	    <txt-record>printer-type=$type_hex</txt-record>
+	$color_txt
+	    <txt-record>PaperMax=legal-A4</txt-record>
+	    <txt-record>pdl=$PDL</txt-record>
+	  </service>
+	</service-group>
+	EOF
+}
+
+case "$1" in
+	--remove)
+		remove_services
+		exit 0
+		;;
+esac
+
+mkdir -p "$SERVICES_DIR"
+chmod 0755 "$SERVICES_DIR"
+remove_services
+
+[ -r "$PRINTERS_CONF" ] || exit 0
+
+printer=""
+info=""
+shared=""
+state=""
+type=""
+
+while IFS= read -r line || [ -n "$line" ]; do
+	line="${line#"${line%%[! 	]*}"}"
+
+	case "$line" in
+		"<DefaultPrinter "*">")
+			printer="${line#<DefaultPrinter }"
+			printer="${printer%>}"
+			info=""
+			shared=""
+			state=""
+			type=""
+			;;
+		"<Printer "*">")
+			printer="${line#<Printer }"
+			printer="${printer%>}"
+			info=""
+			shared=""
+			state=""
+			type=""
+			;;
+		"Info "*)
+			info="${line#Info }"
+			;;
+		"Shared "*)
+			shared="${line#Shared }"
+			;;
+		"State "*)
+			state="${line#State }"
+			;;
+		"Type "*)
+			type="${line#Type }"
+			;;
+		"</Printer>"|"</DefaultPrinter>")
+			write_service "$printer" "$info" "$shared" "$state" "$type"
+			printer=""
+			info=""
+			shared=""
+			state=""
+			type=""
+			;;
+	esac
+done < "$PRINTERS_CONF"

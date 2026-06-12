@@ -2,3 +2,4 @@
 config cupsd 'config'
 	option enabled '0'
 	option port '631'
+	option airprint '1'
