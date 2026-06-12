@@ -12,7 +12,7 @@ PKG_NAME:=cupsx
 PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-source.tar.gz
+PKG_SOURCE:=cups-$(PKG_VERSION)-source.tar.gz
 PKG_SOURCE_URL:=https://github.com/apple/cups/releases/download/v$(PKG_VERSION)
 #PKG_SOURCE_URL:=http://www.cups.org/software/$(PKG_VERSION)
 PKG_MD5SUM:=412434ceefbdf3ec71bc9188a035f589
@@ -44,7 +44,7 @@ define Package/cupsx/conffiles
 /etc/cups/printers.conf
 endef
 
-define Package/cupsx-bsd
+define Package/cups-bsd
 $(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
@@ -52,11 +52,11 @@ $(call Package/cupsx/Default)
   TITLE:=Common UNIX Printing System - BSD commands (old)
 endef
 
-define Package/cupsx-bsd/description
+define Package/cups-bsd/description
 	Common UNIX Printing System - BSD commands (old)
 endef
 
-define Package/cupsx-client
+define Package/cups-client
 $(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
@@ -64,15 +64,15 @@ $(call Package/cupsx/Default)
   TITLE:=Common UNIX Printing System - Client commands
 endef
 
-define Package/cupsx-client/conffiles
+define Package/cups-client/conffiles
 /etc/cups/client.conf
 endef
 
-define Package/cupsx-client/description
+define Package/cups-client/description
 	Common UNIX Printing System - Client commands
 endef
 
-define Package/cupsx-filters
+define Package/cups-filters
 $(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
@@ -80,11 +80,11 @@ $(call Package/cupsx/Default)
   TITLE:=Common UNIX Printing System - Filter
 endef
 
-define Package/cupsx-filters/description
+define Package/cups-filters/description
 	Common UNIX Printing System - Filter
 endef
 
-define Package/cupsx-ppdc
+define Package/cups-ppdc
 $(call Package/cupsx/Default)
   SECTION:=net
   CATEGORY:=Network
@@ -92,7 +92,7 @@ $(call Package/cupsx/Default)
   TITLE:=Common UNIX Printing System - PPDC utils
 endef
 
-define Package/cupsx-ppdc/description
+define Package/cups-ppdc/description
 	Common UNIX Printing System - PPDC utils
 endef
 
@@ -108,7 +108,7 @@ define Package/libcups/description
 	Common UNIX Printing System - Core library
 endef
   
-  define Package/libcupscgi
+define Package/libcupscgi
 $(call Package/cupsx/Default)
   SECTION:=libs
   CATEGORY:=Libraries
@@ -210,8 +210,7 @@ define Package/cupsx/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/cups/driver $(1)/usr/lib/cups
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/cups/monitor $(1)/usr/lib/cups
 	$(INSTALL_DIR) $(1)/usr/lib/cups/filter
-###	$(CP) $(PKG_INSTALL_DIR)/usr/lib/cups/filter/{commandtops,pstops} \
-		$(PKG_INSTALL_DIR)/usr/lib/cups/filter/gziptoany \
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/cups/filter/gziptoany \
 		$(1)/usr/lib/cups/filter
 	$(INSTALL_DIR) $(1)/usr/share/cups/templates
 	$(CP) $(PKG_INSTALL_DIR)/usr/share/cups/templates/*.tmpl \
@@ -243,14 +242,14 @@ define Package/cupsx/install
 	chmod 700 $(1)/usr/lib/cups/backend/usb
 endef
 
-define Package/cupsx-bsd/install
+define Package/cups-bsd/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/{lprm,lpq,lpr} $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/lpc $(1)/usr/sbin/
 endef
 
-define Package/cupsx-client/install
+define Package/cups-client/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/bin/{lp,cancel,cupstestppd} \
@@ -264,14 +263,14 @@ define Package/cupsx-client/install
 	(cd $(1)/usr/sbin; ln -sf cupsaccept accept; ln -sf cupsaccept cupsenable; ln -sf cupsaccept cupsdisable; ln -sf cupsaccept reject; ln -sf cupsaccept cupsreject;)
 endef
 
-define Package/cupsx-filters/install
+define Package/cups-filters/install
 	$(INSTALL_DIR) $(1)/usr/lib/cups/filter
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/cups/filter/{rastertoepson,rastertohp,rastertolabel,rastertopwg} \
 		$(1)/usr/lib/cups/filter
 	(cd $(1)/usr/lib/cups/filter; ln -sf rastertolabel rastertodymo;)
 endef
 
-define Package/cupsx-ppdc/install
+define Package/cups-ppdc/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/usr/bin/{ppdc,ppdhtml,ppdi,ppdmerge,ppdpo} \
