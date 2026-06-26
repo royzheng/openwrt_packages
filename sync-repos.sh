@@ -18,6 +18,7 @@ REPOS_DIR="${ROOT_DIR}/repos"
 REPO_SPECS=(
   "openclash|https://github.com/vernesong/OpenClash.git|openclash|selected|luci-app-openclash|"
   "passwall|https://github.com/xiaorouji/openwrt-passwall-packages.git|passwall|all_subdirs||.github"
+  "immortalwrt-mt798x|https://github.com/hanwckf/immortalwrt-mt798x.git|immortalwrt-mt798x|selected|package/mtk/applications/luci-app-mtwifi-cfg package/mtk/applications/mtwifi-cfg|"
 )
 
 log() {
